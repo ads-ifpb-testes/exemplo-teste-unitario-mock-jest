@@ -4,21 +4,13 @@ import {
 	limparFilmes,
 	removerFilme,
 } from "./gerenciador";
+import { repositorio } from "./repositorio";
+
+jest.mock("./repositorio");
 
 describe("Gerenciador de filmes", () => {
 	beforeEach(() => {
 		limparFilmes();
-	});
-
-	test("Deve inserir apenas 1 filme", () => {
-		const filmeTeste = {
-			nome: "Homem de Ferro",
-			ano: 2008,
-		};
-
-		addFilme(filmeTeste);
-		const qtdeFilmes = getQtdeFilmes();
-		expect(qtdeFilmes).toBe(1);
 	});
 
 	test("Deve inserir vários filmes", () => {
@@ -33,7 +25,10 @@ describe("Gerenciador de filmes", () => {
 		};
 
 		const qtdeFilmesEsperado = 2;
+		repositorio.listar.mockReturnValue([]);
 		addFilme(filme1, filme2);
+		repositorio.listar.mockReturnValue([filme1, filme2]);
+
 		expect(getQtdeFilmes()).toBe(qtdeFilmesEsperado);
 	});
 
@@ -44,9 +39,11 @@ describe("Gerenciador de filmes", () => {
 		};
 
 		addFilme(filme);
+		repositorio.listar.mockReturnValue([filme]);
 		expect(getQtdeFilmes()).toBe(1);
 
 		removerFilme(filme);
+		repositorio.listar.mockReturnValue([]);
 		expect(getQtdeFilmes()).toBe(0);
 	});
 
@@ -55,6 +52,19 @@ describe("Gerenciador de filmes", () => {
 			nome: "Doutor Estranho no Multiverso da Loucura",
 			ano: 2022,
 		};
+
+		expect(() => {
+			addFilme(filme);
+		}).toThrow(Error);
+	});
+
+	test("Não deve permitir dois filmes com o mesmo nome e ano", () => {
+		const filme = {
+			nome: "Madagascar",
+			ano: 2005,
+		};
+
+		repositorio.listar.mockReturnValue([filme]);
 
 		expect(() => {
 			addFilme(filme);
